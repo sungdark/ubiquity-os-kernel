@@ -67,6 +67,28 @@ if (!pids.length) {
   Deno.exit(0);
 }
 
+// Handle graceful shutdown
+let killed = false;
+const shutdown = async () => {
+  if (killed) return;
+  killed = true;
+  console.log("\nReceived shutdown signal. Killing processes...");
+  for (const pid of pids) {
+    const didKill = await killPid(pid);
+    if (didKill) {
+      console.log(`Process ${pid} killed successfully.`);
+    } else {
+      console.warn(`Failed to kill process ${pid}.`);
+    }
+  }
+  Deno.exit(0);
+};
+
+Deno.addSignalListener("SIGINT", shutdown);
+Deno.addSignalListener("SIGTERM", shutdown);
+
+console.log(`Found ${pids.length} process(es) listening on port ${PORT}. Killing...`);
+
 for (const pid of pids) {
   const didKill = await killPid(pid);
   if (didKill) {

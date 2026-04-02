@@ -38,6 +38,27 @@ app.get("/", async (c) => {
   return c.text(`Welcome to UbiquityOS kernel (${commit})`);
 });
 
+app.get("/help", async (c) => {
+  const env = getEnvWithDefaults(c);
+  const commit = await getKernelCommit();
+  const version = "7.3.0"; // TODO: Read from package.json or git tag
+  const helpText = [
+    `UbiquityOS Kernel v${version} (${commit})`,
+    "",
+    "Available routes:",
+    "  GET /            - Welcome message with kernel commit",
+    "  GET /help        - This help message",
+    "  GET /internal/agent-memory - Query agent memory entries",
+    "  POST /internal/agent/refresh-token - Refresh GitHub installation token",
+    "  POST /           - GitHub webhook endpoint",
+    "",
+    `Environment: ${env.ENVIRONMENT ?? "not set"}`,
+    `Kernel Commit: ${commit}`,
+    `Kernel Version: ${version}`,
+  ].join("\n");
+  return c.text(helpText);
+});
+
 app.get("/internal/agent-memory", async (ctx: Context) => {
   try {
     const env = getEnvWithDefaults(ctx);
